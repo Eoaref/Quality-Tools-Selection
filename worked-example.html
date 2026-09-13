@@ -69,13 +69,14 @@
 </head>
 <body>
 <div class="wrap">
-  <a class="nav-link" href="index.html">&larr; Back to Pick the Right Quality Tool (quiz)</a>
+  <a class="nav-link" href="index.html">&larr; Try the practice quiz</a>
   <p class="eyebrow">Quality tools — worked example</p>
-  <h1>One shop-floor dataset. Four different questions. Only one chart answers each cleanly.</h1>
+  <h1>One support-queue dataset. Four different questions. Only one chart answers each cleanly.</h1>
   <p class="intro">
-    Line 3 logs the same 20 days of production: barrel temperature, defects by type, and a sampled
-    part weight. Nothing about the data changes below — only the question does. Pick a question to
-    see which tool it calls for, and why the other three fall short of it.
+    Northgate Telecom's Tier-1 support queue logs the same 20 days: how many agents were on shift,
+    issues flagged on calls by type, and one sampled call's handle time. Nothing about the data
+    changes below — only the question does. Pick a question to see which tool it calls for, and why
+    the other three fall short of it.
   </p>
 
   <div class="tabs" id="tabs"></div>
@@ -123,54 +124,56 @@
 </div>
 
 <script>
-/* Same dataset shape as the quiz page's datasetA. */
+/* One dataset: 20 days on Northgate Telecom's Tier-1 support queue.
+   "temp" holds agents-on-shift (staffing), reused by the scatter helper.
+   "weight" holds sampled call handle time in minutes, target 6.0. */
 const dataset = {
-  typeLabels: { shortFill:"Short fill", burr:"Burr", crack:"Crack", warp:"Warpage", disc:"Discoloration", flash:"Flash" },
-  unit:"g", target:50,
+  typeLabels: { shortFill:"Wrong info given", burr:"Long hold flagged", crack:"Billing error", warp:"Escalation missed", disc:"Rude tone flagged", flash:"Dropped call" },
+  unit:"min", target:6.0,
   days: [
-    {day:1,temp:185,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:49.8},
-    {day:2,temp:186,shortFill:3,burr:2,crack:0,warp:1,disc:1,flash:0,weight:50.3},
-    {day:3,temp:185,shortFill:5,burr:3,crack:1,warp:0,disc:0,flash:1,weight:49.6},
-    {day:4,temp:187,shortFill:4,burr:2,crack:0,warp:1,disc:0,flash:0,weight:50.1},
-    {day:5,temp:186,shortFill:3,burr:4,crack:1,warp:0,disc:1,flash:0,weight:49.9},
-    {day:6,temp:185,shortFill:4,burr:3,crack:0,warp:1,disc:0,flash:0,weight:50.4},
-    {day:7,temp:186,shortFill:5,burr:2,crack:1,warp:0,disc:0,flash:1,weight:49.7},
-    {day:8,temp:187,shortFill:3,burr:3,crack:0,warp:1,disc:1,flash:0,weight:50.0},
-    {day:9,temp:186,shortFill:4,burr:4,crack:1,warp:0,disc:0,flash:0,weight:49.5},
-    {day:10,temp:185,shortFill:3,burr:2,crack:0,warp:1,disc:0,flash:1,weight:50.2},
-    {day:11,temp:186,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:49.9},
-    {day:12,temp:187,shortFill:5,burr:3,crack:0,warp:0,disc:1,flash:0,weight:50.6},
-    {day:13,temp:186,shortFill:4,burr:2,crack:1,warp:1,disc:0,flash:0,weight:49.4},
-    {day:14,temp:185,shortFill:3,burr:3,crack:0,warp:0,disc:0,flash:1,weight:50.0},
-    {day:15,temp:186,shortFill:4,burr:4,crack:1,warp:1,disc:0,flash:0,weight:49.8},
-    {day:16,temp:188,shortFill:5,burr:3,crack:0,warp:1,disc:1,flash:0,weight:50.1},
-    {day:17,temp:192,shortFill:8,burr:4,crack:1,warp:3,disc:0,flash:1,weight:50.3},
-    {day:18,temp:194,shortFill:9,burr:3,crack:1,warp:4,disc:1,flash:0,weight:49.9},
-    {day:19,temp:195,shortFill:10,burr:4,crack:0,warp:4,disc:0,flash:1,weight:50.5},
-    {day:20,temp:196,shortFill:12,burr:5,crack:1,warp:5,disc:1,flash:0,weight:50.2}
+    {day:1,temp:9,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:5.9},
+    {day:2,temp:8,shortFill:3,burr:2,crack:0,warp:1,disc:1,flash:0,weight:6.15},
+    {day:3,temp:9,shortFill:5,burr:3,crack:1,warp:0,disc:0,flash:1,weight:5.8},
+    {day:4,temp:8,shortFill:4,burr:2,crack:0,warp:1,disc:0,flash:0,weight:6.05},
+    {day:5,temp:8,shortFill:3,burr:4,crack:1,warp:0,disc:1,flash:0,weight:5.95},
+    {day:6,temp:9,shortFill:4,burr:3,crack:0,warp:1,disc:0,flash:0,weight:6.2},
+    {day:7,temp:8,shortFill:5,burr:2,crack:1,warp:0,disc:0,flash:1,weight:5.85},
+    {day:8,temp:8,shortFill:3,burr:3,crack:0,warp:1,disc:1,flash:0,weight:6.0},
+    {day:9,temp:8,shortFill:4,burr:4,crack:1,warp:0,disc:0,flash:0,weight:5.75},
+    {day:10,temp:9,shortFill:3,burr:2,crack:0,warp:1,disc:0,flash:1,weight:6.1},
+    {day:11,temp:8,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:5.95},
+    {day:12,temp:8,shortFill:5,burr:3,crack:0,warp:0,disc:1,flash:0,weight:6.3},
+    {day:13,temp:8,shortFill:4,burr:2,crack:1,warp:1,disc:0,flash:0,weight:5.7},
+    {day:14,temp:9,shortFill:3,burr:3,crack:0,warp:0,disc:0,flash:1,weight:6.0},
+    {day:15,temp:8,shortFill:4,burr:4,crack:1,warp:1,disc:0,flash:0,weight:5.9},
+    {day:16,temp:7,shortFill:5,burr:3,crack:0,warp:1,disc:1,flash:0,weight:6.05},
+    {day:17,temp:6,shortFill:8,burr:4,crack:1,warp:3,disc:0,flash:1,weight:6.15},
+    {day:18,temp:5,shortFill:9,burr:3,crack:1,warp:4,disc:1,flash:0,weight:5.95},
+    {day:19,temp:4,shortFill:10,burr:4,crack:0,warp:4,disc:0,flash:1,weight:6.25},
+    {day:20,temp:3,shortFill:12,burr:5,crack:1,warp:5,disc:1,flash:0,weight:6.1}
   ]
 };
 
 const TOOLS = [
   { key:"pareto", name:"Pareto Chart", sub:"count by category",
-    question:"Which defect types are costing us the most, and where should the team focus first?",
+    question:"The team lead wants to know: out of everything going wrong on calls, which single issue should coaching focus on first to cut complaints the most?",
     why:"It ranks categories by frequency and overlays the cumulative percentage, so the \u201Cvital few\u201D separate visually from the \u201Ctrivial many.\u201D",
-    what:"Short fill and burr together account for about 77% of every defect logged across the 20 days \u2014 fixing those two mold issues resolves most of the problem.",
-    not:"A control chart would show when defects happened, not which type matters most. A histogram needs a continuous measurement, not defect categories \u2014 it can't rank them at all." },
+    what:"Wrong info given and long hold flagged together account for about 77% of every issue logged across the 20 days \u2014 those two areas are where coaching effort pays off first.",
+    not:"A control chart would show when issues spiked, not which type matters most. A histogram needs a continuous measurement, not flagged-issue categories \u2014 it can't rank them at all." },
   { key:"control", name:"Control Chart", sub:"value over time",
-    question:"Is the molding process stable, or has something changed that needs investigating?",
-    why:"It plots the same total-defects-per-day figure against control limits calculated from the process itself, so ordinary day-to-day noise is separated from a genuine shift.",
-    what:"", // filled in dynamically with computed limits
+    question:"Has call quality actually gotten worse recently, or does it just feel that way after a rough week?",
+    why:"It plots the same total-flagged-issues-per-day figure against control limits calculated from the queue itself, so ordinary day-to-day noise is separated from a genuine shift.",
+    what:"",
     not:"A Pareto chart tells you what fails most overall, not when it started failing. A scatter diagram could hint at a relationship but won't flag which specific day broke down." },
   { key:"histogram", name:"Histogram", sub:"distribution of a measurement",
-    question:"Is the critical part dimension centered on target, and what's the process's natural spread?",
-    why:"It turns individual weight measurements into a distribution, revealing centering, spread, and shape at a glance \u2014 something a time-ordered chart can't show clearly.",
-    what:"Weights cluster tightly around the 50 g target with a slight right-hand tail. No sign of off-center or bimodal behavior on this characteristic.",
+    question:"Is average call handle time still landing near the 6-minute service target, or has it drifted?",
+    why:"It turns individual handle-time samples into a distribution, revealing centering, spread, and shape at a glance \u2014 something a time-ordered chart can't show clearly.",
+    what:"Handle times cluster tightly around 6.0 minutes with only a slight spread either side. Whatever else is going on with the queue, average handle time itself hasn't drifted.",
     not:"A control chart shows drift over time but hides the overall shape of the spread. Pareto only works on categorical counts \u2014 it can't bin a continuous measurement." },
   { key:"scatter", name:"Scatter Diagram", sub:"relationship between two variables",
-    question:"Is there a relationship between barrel temperature and the number of defects?",
+    question:"Does having fewer agents on shift actually relate to more flagged issues, or is that just an assumption people are making?",
     why:"It plots two continuous variables against each other to test for \u2014 and visualize the strength of \u2014 a relationship, which a bar chart or histogram can't answer.",
-    what:"A clear positive relationship shows up above roughly 190\u00B0C: defects climb sharply. Temperature is a strong candidate for the root cause.",
+    what:"A clear negative relationship shows up: once staffing drops below about 6 agents, flagged issues climb sharply. Short-staffing is a strong candidate for the root cause.",
     not:"A histogram shows one variable's distribution, not how two move together. A control chart shows only time, not correlation between variables." }
 ];
 
@@ -197,7 +200,7 @@ function histogramBins(ds){
   const bins=[];
   for(let i=0;i<n;i++){
     const lo=min+i*width, hi=i===n-1?max+0.001:min+(i+1)*width;
-    bins.push({range:`${lo.toFixed(1)}\u2013${Math.min(hi,max).toFixed(1)}`, lo, hi});
+    bins.push({range:`${lo.toFixed(2)}\u2013${Math.min(hi,max).toFixed(2)}`, lo, hi});
   }
   bins.forEach(b=> b.count = weights.filter(w=>w>=b.lo && w<b.hi).length);
   return bins;
@@ -225,13 +228,13 @@ function renderChart(key){
     const data = paretoData(dataset);
     chartInstance = new Chart(ctx, {
       data:{ labels:data.map(d=>d.label), datasets:[
-        {type:"bar", label:"Defect count", data:data.map(d=>d.count), backgroundColor:COLORS.blue, yAxisID:"yCount", order:2},
+        {type:"bar", label:"Issue count", data:data.map(d=>d.count), backgroundColor:COLORS.blue, yAxisID:"yCount", order:2},
         {type:"line", label:"Cumulative %", data:data.map(d=>d.cumPct), borderColor:COLORS.orange, backgroundColor:COLORS.orange, yAxisID:"yPct", order:1, tension:.3, pointRadius:4}
       ]},
       options:{ responsive:true, maintainAspectRatio:false,
         scales:{
           x:{ ticks:{font:commonFont,color:COLORS.ink} },
-          yCount:{ position:"left", ticks:{font:commonFont,color:COLORS.ink}, title:{display:true,text:"Defect count",color:COLORS.muted} },
+          yCount:{ position:"left", ticks:{font:commonFont,color:COLORS.ink}, title:{display:true,text:"Issue count",color:COLORS.muted} },
           yPct:{ position:"right", min:0, max:100, grid:{drawOnChartArea:false}, ticks:{font:commonFont,color:COLORS.ink}, title:{display:true,text:"Cumulative %",color:COLORS.muted} }
         },
         plugins:{ legend:{ labels:{font:commonFont} } }
@@ -245,7 +248,7 @@ function renderChart(key){
     chartInstance = new Chart(ctx, {
       type:"line",
       data:{ labels:totals.map(d=>d.day), datasets:[
-        { label:"Total defects", data:totals.map(d=>d.total), borderColor:COLORS.blue, backgroundColor:COLORS.blue, tension:.25, pointRadius:5,
+        { label:"Flagged issues", data:totals.map(d=>d.total), borderColor:COLORS.blue, backgroundColor:COLORS.blue, tension:.25, pointRadius:5,
           pointBackgroundColor: totals.map(d => (d.total>UCL||d.total<LCL) ? COLORS.orange : COLORS.blue) },
         { label:"CL", data:totals.map(()=>mean), borderColor:COLORS.teal, borderDash:[4,3], pointRadius:0, fill:false },
         { label:"UCL", data:totals.map(()=>UCL), borderColor:COLORS.orange, borderDash:[4,3], pointRadius:0, fill:false },
@@ -253,25 +256,25 @@ function renderChart(key){
       ]},
       options:{ responsive:true, maintainAspectRatio:false,
         scales:{
-          x:{ title:{display:true,text:"Production day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
-          y:{ title:{display:true,text:"Total defects / day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} }
+          x:{ title:{display:true,text:"Day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
+          y:{ title:{display:true,text:"Flagged issues / day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} }
         },
         plugins:{ legend:{ labels:{font:commonFont} } }
       }
     });
     TOOLS.find(t=>t.key==="control").what =
-      `Limits calculated from the first 16 days give a centerline near ${mean.toFixed(1)} and an upper limit near ${UCL.toFixed(1)}. Days 17\u201320 breach that limit \u2014 the process shifted out of control right as temperature crept up.`;
+      `Limits calculated from the first 16 days give a centerline near ${mean.toFixed(1)} and an upper limit near ${UCL.toFixed(1)}. Days 17\u201320 breach that limit \u2014 right when staffing dropped for a scheduled training gap.`;
   }
 
   if (key==="histogram"){
     const bins = histogramBins(dataset);
     chartInstance = new Chart(ctx, {
       type:"bar",
-      data:{ labels:bins.map(b=>b.range), datasets:[{ label:`Parts sampled (${dataset.unit})`, data:bins.map(b=>b.count), backgroundColor:COLORS.teal }] },
+      data:{ labels:bins.map(b=>b.range), datasets:[{ label:`Days sampled`, data:bins.map(b=>b.count), backgroundColor:COLORS.teal }] },
       options:{ responsive:true, maintainAspectRatio:false,
         scales:{
-          x:{ title:{display:true,text:`Part weight (${dataset.unit})`,color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
-          y:{ beginAtZero:true, ticks:{stepSize:1,font:commonFont,color:COLORS.ink}, title:{display:true,text:"Number of parts",color:COLORS.muted} }
+          x:{ title:{display:true,text:`Handle time (${dataset.unit})`,color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
+          y:{ beginAtZero:true, ticks:{stepSize:1,font:commonFont,color:COLORS.ink}, title:{display:true,text:"Number of days",color:COLORS.muted} }
         },
         plugins:{ legend:{ labels:{font:commonFont} } }
       }
@@ -284,13 +287,13 @@ function renderChart(key){
     chartInstance = new Chart(ctx, {
       type:"scatter",
       data:{ datasets:[
-        { type:"scatter", label:"Production day", data:pts, backgroundColor:COLORS.blue },
+        { type:"scatter", label:"Day", data:pts, backgroundColor:COLORS.blue },
         { type:"line", label:"Trend", data:trend, borderColor:COLORS.orange, pointRadius:0, fill:false, tension:0 }
       ]},
       options:{ responsive:true, maintainAspectRatio:false,
         scales:{
-          x:{ type:"linear", title:{display:true,text:"Barrel temperature (\u00B0C)",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
-          y:{ title:{display:true,text:"Total defects / day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} }
+          x:{ type:"linear", title:{display:true,text:"Agents on shift",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
+          y:{ title:{display:true,text:"Flagged issues / day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} }
         },
         plugins:{ legend:{ labels:{font:commonFont} } }
       }
@@ -313,20 +316,28 @@ function buildTabs(){
 function buildRawTable(){
   const t = document.getElementById("rawTable");
   const totals = dailyTotals(dataset);
-  const head = ["Day","Temp \u00B0C","Short fill","Burr","Warp","Crack","Disc","Flash","Total","Weight g"];
+  const head = ["Day","Agents","Wrong info","Long hold","Escalation","Billing","Rude tone","Dropped","Total","Handle min"];
   let html = "<thead><tr>" + head.map(h=>`<th>${h}</th>`).join("") + "</tr></thead><tbody>";
   totals.forEach(d=>{
-    html += `<tr><td>${d.day}</td><td>${d.temp}</td><td>${d.shortFill}</td><td>${d.burr}</td><td>${d.warp}</td><td>${d.crack}</td><td>${d.disc}</td><td>${d.flash}</td><td style="font-weight:600;">${d.total}</td><td>${d.weight.toFixed(1)}</td></tr>`;
+    html += `<tr><td>${d.day}</td><td>${d.temp}</td><td>${d.shortFill}</td><td>${d.burr}</td><td>${d.warp}</td><td>${d.crack}</td><td>${d.disc}</td><td>${d.flash}</td><td style="font-weight:600;">${d.total}</td><td>${d.weight.toFixed(2)}</td></tr>`;
   });
   html += "</tbody>";
   t.innerHTML = html;
 }
 
-let active = "pareto";
+if (typeof Chart === "undefined"){
+  document.querySelector(".wrap").innerHTML =
+    '<p style="font-size:14px;">Chart.js failed to load from the CDN, so the charts can\'t render. Check your internet connection and reload the page.</p>';
+} else {
+  var active = "pareto";
+  buildRawTable();
+  selectTabInit();
+}
+
 function selectTab(key){
   active = key;
   const tool = TOOLS.find(t=>t.key===key);
-  renderChart(key); // may update tool.what for control chart
+  renderChart(key);
   document.getElementById("qText").textContent = tool.question;
   document.getElementById("whyLabel").textContent = "WHY " + tool.name.toUpperCase();
   document.getElementById("whyText").textContent = tool.why;
@@ -334,9 +345,7 @@ function selectTab(key){
   document.getElementById("notText").textContent = tool.not;
   buildTabs();
 }
-
-buildRawTable();
-selectTab("pareto");
+function selectTabInit(){ selectTab("pareto"); }
 </script>
 </body>
 </html>
