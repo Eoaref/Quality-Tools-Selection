@@ -70,7 +70,7 @@
     background:transparent; border:1px solid var(--line); border-radius:5px; padding:8px 14px; cursor:pointer;
   }
   .restart-btn:hover{ border-color:var(--blue); color:var(--blue); }
-  footer{ margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+  footer{ margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11.5px; color:var(--muted); line-height:1.7; }
   .nav-link{ font-family:var(--mono); font-size:12px; color:var(--blue); text-decoration:none; }
   .nav-link:hover{ text-decoration:underline; }
 </style>
@@ -118,7 +118,15 @@
     <button class="restart-btn" id="restartBtn">↺ Restart the exercise</button>
   </div>
 
-  <footer>Built as a classroom exercise on choosing the right quality tool for the question at hand.</footer>
+  <footer>
+    This tool was created as an aid to help students recognize the role, value, and application of some
+    common quality tools. This interactive example was planned and structured by the instructor; the code
+    was created by Claude (Anthropic) and deployed by the instructor. It is for educational purposes only —
+    names and entities are fictional, used solely to give context to the problems.<br><br>
+    Comments, questions, or spotted errors: <a class="nav-link" href="mailto:earef@outlook.com">earef@outlook.com</a><br><br>
+    Licensed under <a class="nav-link" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener">CC BY-NC-ND 4.0</a>
+    — share the original only, no modifications, no commercial use.
+  </footer>
 </div>
 
 <script>

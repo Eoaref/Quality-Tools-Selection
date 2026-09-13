@@ -42,3 +42,11 @@ The two pages link to each other (top-left of each).
 To add a round, add another dataset and another object to `rounds` — the tool buttons, chart rendering, and progress dots all work off that array automatically.
 
 **`worked-example.html`** — its `<script>` block has one `dataset` and a `TOOLS` array with `question` / `why` / `what` / `not` text per tool. Edit those strings, or swap in a different `dataset` object (same shape: `day`, `temp`, six defect-type counts, `weight`), to retheme it.
+
+## License
+
+This tool was created as an aid to help students recognize the role, value, and application of some common quality tools. This interactive example was planned and structured by the instructor; the code was created by Claude (Anthropic) and deployed by the instructor. It is for educational purposes only — names and entities are fictional, used solely to give context to the problems.
+
+Comments, questions, or spotted errors: earef@outlook.com
+
+Licensed under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) — share the original only, no modifications, no commercial use.
