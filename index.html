@@ -6,7 +6,7 @@
 <title>Pick the Right Quality Tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   :root{
     --ink:#16324F; --paper:#EEF2F4; --panel:#FFFFFF; --line:#C3D0D8;
@@ -394,6 +394,11 @@ let roundIndex = 0;
 const triedWrong = rounds.map(()=>[]);
 const completed = rounds.map(()=>false);
 
+if (typeof Chart === "undefined"){
+  document.getElementById("roundView").innerHTML =
+    '<div class="card"><p style="font-size:14px;">Chart.js failed to load from the CDN, so the charts can\'t render. Check your internet connection and reload the page.</p></div>';
+}
+
 function buildDots(){
   const el = document.getElementById("dots");
   el.innerHTML = "";
@@ -475,7 +480,7 @@ document.getElementById("restartBtn").addEventListener("click", ()=>{
   loadRound(0);
 });
 
-loadRound(0);
+if (typeof Chart !== "undefined") loadRound(0);
 </script>
 </body>
 </html>
