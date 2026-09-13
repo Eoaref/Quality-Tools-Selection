@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pick the Right Quality Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#16324F; --paper:#EEF2F4; --panel:#FFFFFF; --line:#C3D0D8;
+    --blue:#2B6CA3; --teal:#3F8C82; --orange:#D9531E; --muted:#5C7688;
+    --sans:'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); }
+  .wrap{ max-width:880px; margin:0 auto; padding:32px 20px 60px; }
+  .eyebrow{ font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:.3px; margin:0 0 6px; }
+  h1{ font-size:27px; line-height:1.3; margin:0 0 18px; max-width:620px; }
+  .dots{ display:flex; gap:8px; margin-bottom:26px; }
+  .dot{ width:26px; height:6px; border-radius:3px; background:var(--line); }
+  .dot.current{ background:var(--blue); }
+  .dot.done{ background:var(--teal); }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:20px; }
+  .scenario-label{ font-family:var(--mono); font-size:11px; color:var(--blue); letter-spacing:.3px; margin:0 0 6px; }
+  .scenario-desc{ font-size:14px; color:var(--muted); line-height:1.55; margin:0 0 16px; }
+  .issue-label{ font-family:var(--mono); font-size:11px; color:var(--orange); letter-spacing:.3px; margin:0 0 6px; }
+  .issue-text{ font-size:16px; font-weight:600; line-height:1.55; margin:0; }
+
+  .tools{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  @media (max-width:560px){ .tools{ grid-template-columns:1fr; } }
+  .tool-btn{
+    text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:14px 16px; cursor:pointer; font-family:var(--sans); color:var(--ink);
+    transition:border-color .15s, background .15s, opacity .15s;
+  }
+  .tool-btn:hover:not(:disabled){ border-color:var(--blue); }
+  .tool-btn .t-name{ font-size:15px; font-weight:600; display:block; }
+  .tool-btn .t-sub{ font-family:var(--mono); font-size:11.5px; color:var(--muted); display:block; margin-top:3px; }
+  .tool-btn.tried-wrong{ opacity:.5; border-color:var(--orange); }
+  .tool-btn.correct-pick{ border-color:var(--blue); background:rgba(43,108,163,.08); }
+  .tool-btn:disabled{ cursor:default; }
+
+  .chart-wrap{ height:340px; margin-bottom:6px; display:none; }
+  .chart-wrap.show{ display:block; }
+  .placeholder{ font-family:var(--mono); font-size:12.5px; color:var(--muted); padding:60px 0; text-align:center; }
+
+  .feedback{ display:none; border-left:3px solid var(--orange); padding:14px 16px; border-radius:0 6px 6px 0; background:#FBF4F1; margin-top:6px; }
+  .feedback.show{ display:block; }
+  .feedback.correct{ border-left-color:var(--blue); background:rgba(43,108,163,.06); }
+  .feedback-label{ font-family:var(--mono); font-size:11px; letter-spacing:.3px; margin:0 0 6px; color:var(--orange); }
+  .feedback.correct .feedback-label{ color:var(--blue); }
+  .feedback-text{ font-size:14px; line-height:1.6; margin:0; }
+  .next-btn{
+    margin-top:14px; font-family:var(--sans); font-weight:600; font-size:13.5px; color:#fff;
+    background:var(--blue); border:none; border-radius:5px; padding:9px 16px; cursor:pointer;
+  }
+  .next-btn:hover{ background:#245683; }
+
+  .summary h2{ font-size:23px; margin:0 0 10px; }
+  .summary p{ font-size:14.5px; color:var(--muted); line-height:1.6; max-width:560px; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; margin-top:18px; }
+  th{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); color:var(--muted); font-weight:500; }
+  td{ padding:8px 10px; border-bottom:1px solid var(--line); }
+  .restart-btn{
+    margin-top:20px; font-family:var(--mono); font-size:12.5px; color:var(--ink);
+    background:transparent; border:1px solid var(--line); border-radius:5px; padding:8px 14px; cursor:pointer;
+  }
+  .restart-btn:hover{ border-color:var(--blue); color:var(--blue); }
+  footer{ margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+  .nav-link{ font-family:var(--mono); font-size:12px; color:var(--blue); text-decoration:none; }
+  .nav-link:hover{ text-decoration:underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="nav-link" href="worked-example.html">See the worked example first &rarr;</a>
+  <p class="eyebrow">Quality tools — practice exercise</p>
+  <h1 id="pageTitle">Pick the tool that actually answers the question</h1>
+  <div class="dots" id="dots"></div>
+
+  <div id="roundView">
+    <div class="card">
+      <p class="scenario-label" id="scenarioLabel"></p>
+      <p class="scenario-desc" id="scenarioDesc"></p>
+      <p class="issue-label">THE QUESTION TO ANSWER</p>
+      <p class="issue-text" id="issueText"></p>
+    </div>
+
+    <div class="tools" id="toolButtons"></div>
+
+    <div class="card">
+      <div class="chart-wrap" id="chartWrap"><canvas id="chartCanvas"></canvas></div>
+      <p class="placeholder" id="placeholder">Choose a tool above to see it plotted against this data.</p>
+      <div class="feedback" id="feedback">
+        <p class="feedback-label" id="feedbackLabel"></p>
+        <p class="feedback-text" id="feedbackText"></p>
+        <button class="next-btn" id="nextBtn" style="display:none;">Next challenge →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="summaryView" class="card summary" style="display:none;">
+    <h2>All four matched.</h2>
+    <p>Same lesson every round: the dataset didn't change, only the question did. The chart that answers it is the one built to answer that kind of question — not the one that looks fanciest.</p>
+    <table>
+      <thead><tr><th>If you're asking...</th><th>Reach for</th></tr></thead>
+      <tbody>
+        <tr><td>Which category matters most?</td><td>Pareto Chart</td></tr>
+        <tr><td>Is the process stable over time?</td><td>Control Chart</td></tr>
+        <tr><td>What's the shape of a measurement?</td><td>Histogram</td></tr>
+        <tr><td>Are two variables related?</td><td>Scatter Diagram</td></tr>
+      </tbody>
+    </table>
+    <button class="restart-btn" id="restartBtn">↺ Restart the exercise</button>
+  </div>
+
+  <footer>Built as a classroom exercise on choosing the right quality tool for the question at hand.</footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------
+   DATA — two production lines, each logged for 20 days.
+   Every round below reuses one of these two datasets; only the
+   question (the "issue") changes, which is the whole point of the
+   exercise.
+--------------------------------------------------------------------- */
+const datasetA = {
+  name: "Harlow Components — Line 3",
+  desc: "Harlow Components molds plastic housings for power tools. You're covering quality checks on Line 3 for three weeks. Your supervisor, Dana, hands you 20 days of production logs: barrel temperature, six defect types counted each day, and one sampled part weight (target 50 g).",
+  unit: "g", target: 50,
+  typeLabels: { shortFill:"Short fill", burr:"Burr", crack:"Crack", warp:"Warpage", disc:"Discoloration", flash:"Flash" },
+  days: [
+    {day:1,temp:185,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:49.8},
+    {day:2,temp:186,shortFill:3,burr:2,crack:0,warp:1,disc:1,flash:0,weight:50.3},
+    {day:3,temp:185,shortFill:5,burr:3,crack:1,warp:0,disc:0,flash:1,weight:49.6},
+    {day:4,temp:187,shortFill:4,burr:2,crack:0,warp:1,disc:0,flash:0,weight:50.1},
+    {day:5,temp:186,shortFill:3,burr:4,crack:1,warp:0,disc:1,flash:0,weight:49.9},
+    {day:6,temp:185,shortFill:4,burr:3,crack:0,warp:1,disc:0,flash:0,weight:50.4},
+    {day:7,temp:186,shortFill:5,burr:2,crack:1,warp:0,disc:0,flash:1,weight:49.7},
+    {day:8,temp:187,shortFill:3,burr:3,crack:0,warp:1,disc:1,flash:0,weight:50.0},
+    {day:9,temp:186,shortFill:4,burr:4,crack:1,warp:0,disc:0,flash:0,weight:49.5},
+    {day:10,temp:185,shortFill:3,burr:2,crack:0,warp:1,disc:0,flash:1,weight:50.2},
+    {day:11,temp:186,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:49.9},
+    {day:12,temp:187,shortFill:5,burr:3,crack:0,warp:0,disc:1,flash:0,weight:50.6},
+    {day:13,temp:186,shortFill:4,burr:2,crack:1,warp:1,disc:0,flash:0,weight:49.4},
+    {day:14,temp:185,shortFill:3,burr:3,crack:0,warp:0,disc:0,flash:1,weight:50.0},
+    {day:15,temp:186,shortFill:4,burr:4,crack:1,warp:1,disc:0,flash:0,weight:49.8},
+    {day:16,temp:188,shortFill:5,burr:3,crack:0,warp:1,disc:1,flash:0,weight:50.1},
+    {day:17,temp:192,shortFill:8,burr:4,crack:1,warp:3,disc:0,flash:1,weight:50.3},
+    {day:18,temp:194,shortFill:9,burr:3,crack:1,warp:4,disc:1,flash:0,weight:49.9},
+    {day:19,temp:195,shortFill:10,burr:4,crack:0,warp:4,disc:0,flash:1,weight:50.5},
+    {day:20,temp:196,shortFill:12,burr:5,crack:1,warp:5,disc:1,flash:0,weight:50.2}
+  ]
+};
+
+const datasetB = {
+  name: "Millbrook Bakery — Line 7",
+  desc: "Millbrook Bakery supplies sandwich bread to three regional grocery chains, each with its own weight-tolerance contract. Line 7's oven was recently swapped for a refurbished unit, so the QA team has been logging it closely: oven temperature, six defect types counted each day, and one sampled loaf weight (target 500 g).",
+  unit: "g", target: 500,
+  typeLabels: { shortFill:"Stuck to pan", burr:"Torn crust", crack:"Misshapen", warp:"Burnt bottom", disc:"Label smudge", flash:"Uneven crust" },
+  days: [
+    {day:1,temp:205,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:498.8},
+    {day:2,temp:206,shortFill:3,burr:2,crack:0,warp:1,disc:1,flash:0,weight:501.8},
+    {day:3,temp:205,shortFill:5,burr:3,crack:1,warp:0,disc:0,flash:1,weight:497.6},
+    {day:4,temp:207,shortFill:4,burr:2,crack:0,warp:1,disc:0,flash:0,weight:500.6},
+    {day:5,temp:206,shortFill:3,burr:4,crack:1,warp:0,disc:1,flash:0,weight:499.4},
+    {day:6,temp:205,shortFill:4,burr:3,crack:0,warp:1,disc:0,flash:0,weight:502.4},
+    {day:7,temp:206,shortFill:5,burr:2,crack:1,warp:0,disc:0,flash:1,weight:498.2},
+    {day:8,temp:207,shortFill:3,burr:3,crack:0,warp:1,disc:1,flash:0,weight:500.0},
+    {day:9,temp:206,shortFill:4,burr:4,crack:1,warp:0,disc:0,flash:0,weight:497.0},
+    {day:10,temp:205,shortFill:3,burr:2,crack:0,warp:1,disc:0,flash:1,weight:501.2},
+    {day:11,temp:206,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:499.4},
+    {day:12,temp:207,shortFill:5,burr:3,crack:0,warp:0,disc:1,flash:0,weight:503.6},
+    {day:13,temp:206,shortFill:4,burr:2,crack:1,warp:1,disc:0,flash:0,weight:496.4},
+    {day:14,temp:205,shortFill:3,burr:3,crack:0,warp:0,disc:0,flash:1,weight:500.0},
+    {day:15,temp:206,shortFill:4,burr:4,crack:1,warp:1,disc:0,flash:0,weight:498.8},
+    {day:16,temp:208,shortFill:5,burr:3,crack:0,warp:1,disc:1,flash:0,weight:500.6},
+    {day:17,temp:212,shortFill:8,burr:4,crack:1,warp:3,disc:0,flash:1,weight:501.8},
+    {day:18,temp:214,shortFill:9,burr:3,crack:1,warp:4,disc:1,flash:0,weight:499.4},
+    {day:19,temp:215,shortFill:10,burr:4,crack:0,warp:4,disc:0,flash:1,weight:503.0},
+    {day:20,temp:216,shortFill:12,burr:5,crack:1,warp:5,disc:1,flash:0,weight:501.2}
+  ]
+};
+
+/* ---------------------------------------------------------------------
+   ROUNDS — same 4 tool options every round; only the dataset and the
+   question change. Whichever tool the student picks gets plotted, so
+   a wrong pick is visibly wrong, not just marked wrong.
+--------------------------------------------------------------------- */
+const TOOLS = [
+  { key:"pareto",   name:"Pareto Chart",     sub:"ranks categories by frequency" },
+  { key:"control",  name:"Control Chart",    sub:"tracks a value over time vs. limits" },
+  { key:"histogram",name:"Histogram",        sub:"shows the distribution of a measurement" },
+  { key:"scatter",  name:"Scatter Diagram",  sub:"tests the relationship between two variables" }
+];
+
+const rounds = [
+  {
+    dataset: datasetA,
+    issue: "Dana pulls you aside: \u201CWe've got a corrective-action meeting with the plant manager Friday, and I need one slide. Out of everything going wrong on this line, what's the single biggest driver of scrap \u2014 the thing that, if we fixed it and nothing else, would move the needle the most?\u201D She doesn't want a list of six problems. She wants to know where the sprint's engineering hours should go.",
+    correct: "pareto",
+    explanations: {
+      pareto: "Short fill and burr together account for about 77% of every defect logged across the 20 days. The Pareto chart's ranked bars plus cumulative line make that \u201Cvital few\u201D obvious — engineering knows exactly where to start.",
+      control: "This chart tracks total defects day by day and can flag when the process drifted — useful, but it doesn't break defects down by type, so it can't tell you which one to fix first.",
+      histogram: "This shows the spread of part weight, a completely different measurement. It says nothing about which defect type occurs most often.",
+      scatter: "This shows temperature plotted against total defects — a possible cause, not a ranked breakdown of defect types."
+    }
+  },
+  {
+    dataset: datasetA,
+    issue: "A week later, a machine operator mentions the line has \u201Cfelt off\u201D since mid-month, but can't point to anything specific. Dana's skeptical \u2014 production numbers fluctuate every day, and she doesn't want to chase a ghost. She asks you: \u201CBefore I pull anyone off the floor to investigate, prove to me this is a real change in how the process is behaving, not just an unlucky few days.\u201D",
+    correct: "control",
+    explanations: {
+      control: "Limits calculated from the first 16 stable days put the upper control limit near 11.9 defects/day. Days 17–20 break through it — a real, investigate-worthy shift, not normal noise. Timing is exactly what this chart is built to show.",
+      pareto: "This ranks defect types by total count, useful for prioritizing fixes — but it collapses all 20 days into one snapshot, so it can't show whether anything changed over time.",
+      histogram: "This shows the distribution of part weight, a different variable entirely, and it has no sense of time or sequence built in.",
+      scatter: "This hints that temperature and defects might be related, but it won't tell you whether today's process is behaving differently from last week's."
+    }
+  },
+  {
+    dataset: datasetB,
+    issue: "One of your retail buyers, Kingsley Foods, flags that a few store managers complained about \u201Cskimpy-looking loaves.\u201D Your contract with them requires loaves to average 500 g within a tight tolerance, or they can charge back short shipments. Before you call Kingsley back, you need to know: is the line actually centered on 500 g, and how much does weight naturally bounce around from bake to bake \u2014 is this normal variation or a real problem?",
+    correct: "histogram",
+    explanations: {
+      histogram: "The binned weights cluster tightly around 500 g with only a slight spread either side. The histogram's shape shows the process is centered on target with no bimodal or skewed surprise.",
+      pareto: "This ranks defect categories by frequency, but weight isn't a defect category — it's a continuous measurement, so there's nothing here to rank.",
+      control: "This tracks total defects over time and can flag a process shift, but it won't show the overall shape or spread of loaf weight.",
+      scatter: "This would show a relationship between two variables, like oven temperature and weight — but the question is about the spread of one variable on its own."
+    }
+  },
+  {
+    dataset: datasetB,
+    issue: "The maintenance log shows the refurbished oven has been running slightly hotter than spec on and off since it was installed. Your plant manager doesn't want to file a warranty claim with the vendor without evidence. She asks: \u201CBefore I file this, show me \u2014 does the oven actually running hot line up with more loaves coming out defective, or is that just a coincidence people are pattern-matching on?\u201D",
+    correct: "scatter",
+    explanations: {
+      scatter: "Plotting temperature against defect count shows a clear upward trend once ovens run above roughly 210°C — good evidence temperature is a real driver, which no single-variable chart could show.",
+      pareto: "This ranks defect types by how often they occur — helpful for prioritizing, but it says nothing about temperature at all.",
+      control: "This shows whether the defect count itself has drifted over time, but it doesn't plot temperature against defects to test a relationship.",
+      histogram: "This shows the distribution of loaf weight alone — one variable, not the relationship between two."
+    }
+  }
+];
+
+/* ---------------------------------------------------------------------
+   CHART DATA HELPERS — all derived from the same dataset object,
+   regardless of which tool the student picks.
+--------------------------------------------------------------------- */
+function dailyTotals(ds){
+  return ds.days.map(d => ({...d, total: d.shortFill+d.burr+d.crack+d.warp+d.disc+d.flash}));
+}
+function paretoData(ds){
+  const keys = Object.keys(ds.typeLabels);
+  const totals = keys.map(k => ({ label: ds.typeLabels[k], count: ds.days.reduce((s,d)=>s+d[k],0) }));
+  totals.sort((a,b)=>b.count-a.count);
+  const grand = totals.reduce((s,t)=>s+t.count,0);
+  let running = 0;
+  return totals.map(t => { running += t.count; return {...t, cumPct: +(running/grand*100).toFixed(1)}; });
+}
+function controlLimits(totals){
+  const baseline = totals.slice(0,16).map(d=>d.total);
+  const mean = baseline.reduce((a,b)=>a+b,0)/baseline.length;
+  const variance = baseline.reduce((a,b)=>a+(b-mean)**2,0)/baseline.length;
+  const std = Math.sqrt(variance);
+  return { mean, UCL: mean+3*std, LCL: Math.max(0, mean-3*std) };
+}
+function histogramBins(ds){
+  const weights = ds.days.map(d=>d.weight);
+  const min = Math.min(...weights), max = Math.max(...weights);
+  const n = 6, width = (max-min)/n;
+  const bins = [];
+  for(let i=0;i<n;i++){
+    const lo = min+i*width, hi = i===n-1 ? max+0.001 : min+(i+1)*width;
+    bins.push({ range:`${lo.toFixed(1)}\u2013${Math.min(hi,max).toFixed(1)}`, lo, hi });
+  }
+  bins.forEach(b => b.count = weights.filter(w => w>=b.lo && w<b.hi).length);
+  return bins;
+}
+function scatterAndTrend(totals){
+  const pts = totals.map(d=>({x:d.temp, y:d.total}));
+  const n = pts.length;
+  const sumX = pts.reduce((a,p)=>a+p.x,0), sumY = pts.reduce((a,p)=>a+p.y,0);
+  const sumXY = pts.reduce((a,p)=>a+p.x*p.y,0), sumX2 = pts.reduce((a,p)=>a+p.x*p.x,0);
+  const slope = (n*sumXY - sumX*sumY) / (n*sumX2 - sumX*sumX);
+  const intercept = (sumY - slope*sumX) / n;
+  const minX = Math.min(...pts.map(p=>p.x)), maxX = Math.max(...pts.map(p=>p.x));
+  return { pts, trend: [{x:minX,y:slope*minX+intercept},{x:maxX,y:slope*maxX+intercept}] };
+}
+
+/* ---------------------------------------------------------------------
+   RENDERING
+--------------------------------------------------------------------- */
+const COLORS = { ink:"#16324F", blue:"#2B6CA3", teal:"#3F8C82", orange:"#D9531E", muted:"#5C7688", line:"#C3D0D8" };
+let chartInstance = null;
+
+function renderChart(toolKey, ds){
+  const ctx = document.getElementById("chartCanvas").getContext("2d");
+  if (chartInstance) chartInstance.destroy();
+  const commonFont = { family: "'IBM Plex Mono', monospace", size: 11 };
+
+  if (toolKey === "pareto"){
+    const data = paretoData(ds);
+    chartInstance = new Chart(ctx, {
+      data: {
+        labels: data.map(d=>d.label),
+        datasets: [
+          { type:"bar", label:"Defect count", data:data.map(d=>d.count), backgroundColor:COLORS.blue, yAxisID:"yCount", order:2 },
+          { type:"line", label:"Cumulative %", data:data.map(d=>d.cumPct), borderColor:COLORS.orange, backgroundColor:COLORS.orange, yAxisID:"yPct", order:1, tension:.3, pointRadius:4 }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ ticks:{ font:commonFont, color:COLORS.ink } },
+          yCount:{ position:"left", ticks:{ font:commonFont, color:COLORS.ink }, title:{ display:true, text:"Defect count", color:COLORS.muted } },
+          yPct:{ position:"right", min:0, max:100, grid:{ drawOnChartArea:false }, ticks:{ font:commonFont, color:COLORS.ink }, title:{ display:true, text:"Cumulative %", color:COLORS.muted } }
+        },
+        plugins:{ legend:{ labels:{ font:commonFont } } }
+      }
+    });
+  }
+
+  if (toolKey === "control"){
+    const totals = dailyTotals(ds);
+    const { mean, UCL, LCL } = controlLimits(totals);
+    chartInstance = new Chart(ctx, {
+      type:"line",
+      data:{
+        labels: totals.map(d=>d.day),
+        datasets:[
+          { label:"Total defects", data:totals.map(d=>d.total), borderColor:COLORS.blue, backgroundColor:COLORS.blue,
+            tension:.25, pointRadius:5,
+            pointBackgroundColor: totals.map(d => (d.total>UCL || d.total<LCL) ? COLORS.orange : COLORS.blue) },
+          { label:"CL", data: totals.map(()=>mean), borderColor:COLORS.teal, borderDash:[4,3], pointRadius:0, fill:false },
+          { label:"UCL", data: totals.map(()=>UCL), borderColor:COLORS.orange, borderDash:[4,3], pointRadius:0, fill:false },
+          { label:"LCL", data: totals.map(()=>LCL), borderColor:COLORS.orange, borderDash:[4,3], pointRadius:0, fill:false }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ title:{ display:true, text:"Production day", color:COLORS.muted }, ticks:{ font:commonFont, color:COLORS.ink } },
+          y:{ title:{ display:true, text:"Total defects / day", color:COLORS.muted }, ticks:{ font:commonFont, color:COLORS.ink } }
+        },
+        plugins:{ legend:{ labels:{ font:commonFont } } }
+      }
+    });
+  }
+
+  if (toolKey === "histogram"){
+    const bins = histogramBins(ds);
+    chartInstance = new Chart(ctx, {
+      type:"bar",
+      data:{ labels: bins.map(b=>b.range), datasets:[{ label:`Parts sampled (${ds.unit})`, data:bins.map(b=>b.count), backgroundColor:COLORS.teal }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ title:{ display:true, text:`Weight (${ds.unit})`, color:COLORS.muted }, ticks:{ font:commonFont, color:COLORS.ink } },
+          y:{ beginAtZero:true, ticks:{ stepSize:1, font:commonFont, color:COLORS.ink }, title:{ display:true, text:"Number of parts", color:COLORS.muted } }
+        },
+        plugins:{ legend:{ labels:{ font:commonFont } } }
+      }
+    });
+  }
+
+  if (toolKey === "scatter"){
+    const totals = dailyTotals(ds);
+    const { pts, trend } = scatterAndTrend(totals);
+    chartInstance = new Chart(ctx, {
+      type:"scatter",
+      data:{ datasets:[
+        { type:"scatter", label:"Production day", data:pts, backgroundColor:COLORS.blue },
+        { type:"line", label:"Trend", data:trend, borderColor:COLORS.orange, pointRadius:0, fill:false, tension:0 }
+      ]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ type:"linear", title:{ display:true, text:"Temperature (\u00B0C)", color:COLORS.muted }, ticks:{ font:commonFont, color:COLORS.ink } },
+          y:{ title:{ display:true, text:"Total defects / day", color:COLORS.muted }, ticks:{ font:commonFont, color:COLORS.ink } }
+        },
+        plugins:{ legend:{ labels:{ font:commonFont } } }
+      }
+    });
+  }
+}
+
+/* ---------------------------------------------------------------------
+   STATE + UI WIRING
+--------------------------------------------------------------------- */
+let roundIndex = 0;
+const triedWrong = rounds.map(()=>[]);
+const completed = rounds.map(()=>false);
+
+function buildDots(){
+  const el = document.getElementById("dots");
+  el.innerHTML = "";
+  rounds.forEach((_,i)=>{
+    const d = document.createElement("div");
+    d.className = "dot" + (completed[i] ? " done" : (i===roundIndex ? " current" : ""));
+    el.appendChild(d);
+  });
+}
+
+function buildToolButtons(){
+  const el = document.getElementById("toolButtons");
+  el.innerHTML = "";
+  const round = rounds[roundIndex];
+  TOOLS.forEach(tool=>{
+    const btn = document.createElement("button");
+    btn.className = "tool-btn";
+    if (triedWrong[roundIndex].includes(tool.key)) btn.classList.add("tried-wrong");
+    if (completed[roundIndex] && tool.key === round.correct) btn.classList.add("correct-pick");
+    if (completed[roundIndex]) btn.disabled = true;
+    btn.innerHTML = `<span class="t-name">${tool.name}</span><span class="t-sub">${tool.sub}</span>`;
+    btn.addEventListener("click", ()=>handlePick(tool.key));
+    el.appendChild(btn);
+  });
+}
+
+function handlePick(toolKey){
+  const round = rounds[roundIndex];
+  renderChart(toolKey, round.dataset);
+  document.getElementById("chartWrap").classList.add("show");
+  document.getElementById("placeholder").style.display = "none";
+
+  const isCorrect = toolKey === round.correct;
+  const feedback = document.getElementById("feedback");
+  feedback.classList.add("show");
+  feedback.classList.toggle("correct", isCorrect);
+  document.getElementById("feedbackLabel").textContent = isCorrect ? "Correct — here's why" : "Not quite yet";
+  document.getElementById("feedbackText").textContent = round.explanations[toolKey];
+  document.getElementById("nextBtn").style.display = isCorrect ? "inline-block" : "none";
+
+  if (isCorrect){
+    completed[roundIndex] = true;
+    buildDots();
+    buildToolButtons();
+  } else if (!triedWrong[roundIndex].includes(toolKey)){
+    triedWrong[roundIndex].push(toolKey);
+    buildToolButtons();
+  }
+}
+
+function loadRound(i){
+  roundIndex = i;
+  const round = rounds[i];
+  document.getElementById("scenarioLabel").textContent = round.dataset.name.toUpperCase();
+  document.getElementById("scenarioDesc").textContent = round.dataset.desc;
+  document.getElementById("issueText").textContent = round.issue;
+  document.getElementById("chartWrap").classList.remove("show");
+  document.getElementById("placeholder").style.display = "block";
+  document.getElementById("feedback").classList.remove("show","correct");
+  document.getElementById("nextBtn").style.display = "none";
+  buildDots();
+  buildToolButtons();
+}
+
+document.getElementById("nextBtn").addEventListener("click", ()=>{
+  if (roundIndex < rounds.length-1){
+    loadRound(roundIndex+1);
+  } else {
+    document.getElementById("roundView").style.display = "none";
+    document.getElementById("summaryView").style.display = "block";
+  }
+});
+
+document.getElementById("restartBtn").addEventListener("click", ()=>{
+  roundIndex = 0;
+  rounds.forEach((_,i)=>{ completed[i]=false; triedWrong[i]=[]; });
+  document.getElementById("summaryView").style.display = "none";
+  document.getElementById("roundView").style.display = "block";
+  loadRound(0);
+});
+
+loadRound(0);
+</script>
+</body>
+</html>
