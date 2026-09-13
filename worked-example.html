@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Dataset, Four Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#16324F; --paper:#EEF2F4; --panel:#FFFFFF; --line:#C3D0D8;
+    --blue:#2B6CA3; --teal:#3F8C82; --orange:#D9531E; --muted:#5C7688;
+    --sans:'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); }
+  .wrap{ max-width:920px; margin:0 auto; padding:32px 20px 60px; }
+  .nav-link{ font-family:var(--mono); font-size:12px; color:var(--blue); text-decoration:none; }
+  .nav-link:hover{ text-decoration:underline; }
+  .eyebrow{ font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:.3px; margin:18px 0 6px; }
+  h1{ font-size:29px; line-height:1.3; margin:0 0 14px; max-width:640px; }
+  .intro{ font-size:15px; line-height:1.6; color:var(--muted); max-width:640px; margin:0 0 26px; }
+
+  .tabs{ display:flex; gap:2px; border-bottom:1px solid var(--line); margin-bottom:24px; flex-wrap:wrap; }
+  .tab-btn{
+    font-family:var(--sans); font-size:14px; font-weight:500; color:var(--muted);
+    background:transparent; border:none; border-bottom:2px solid transparent;
+    padding:10px 16px 10px 2px; margin-right:18px; cursor:pointer; text-align:left;
+  }
+  .tab-btn .sub{ display:block; font-family:var(--mono); font-size:11px; color:var(--muted); font-weight:400; margin-top:2px; }
+  .tab-btn.active{ color:var(--ink); font-weight:600; border-bottom-color:var(--orange); }
+
+  .q-label{ font-family:var(--mono); font-size:11px; color:var(--blue); letter-spacing:.3px; margin:0 0 4px; }
+  .q-text{ font-size:18px; font-weight:600; margin:0 0 16px; line-height:1.4; }
+
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:16px 12px 6px; }
+  .chart-wrap{ height:340px; }
+
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; }
+  @media (max-width:600px){ .split{ grid-template-columns:1fr; } }
+  .box{ padding-left:14px; }
+  .box p.lab{ font-family:var(--mono); font-size:11px; margin:0 0 6px; }
+  .box p.txt{ font-size:14px; line-height:1.6; margin:0; color:var(--ink); }
+  .box.why{ border-left:3px solid var(--blue); }
+  .box.why p.lab{ color:var(--blue); }
+  .box.what{ border-left:3px solid var(--teal); }
+  .box.what p.lab{ color:var(--teal); }
+  .box.not{ border-left:3px solid var(--orange); margin-top:16px; }
+  .box.not p.lab{ color:var(--orange); }
+
+  .recap{ margin-top:40px; padding-top:24px; border-top:1px solid var(--line); }
+  .recap-label{ font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:.3px; margin:0 0 12px; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); color:var(--muted); font-weight:500; }
+  td{ padding:8px 10px; border-bottom:1px solid var(--line); }
+  td.tool{ font-weight:600; }
+  td.why{ color:var(--muted); }
+
+  details{ margin-top:28px; }
+  summary{ cursor:pointer; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .raw-wrap{ overflow-x:auto; margin-top:10px; }
+  table.raw{ font-family:var(--mono); font-size:11px; }
+  table.raw th, table.raw td{ text-align:right; padding:5px 8px; }
+
+  footer{ margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="nav-link" href="index.html">&larr; Back to Pick the Right Quality Tool (quiz)</a>
+  <p class="eyebrow">Quality tools — worked example</p>
+  <h1>One shop-floor dataset. Four different questions. Only one chart answers each cleanly.</h1>
+  <p class="intro">
+    Line 3 logs the same 20 days of production: barrel temperature, defects by type, and a sampled
+    part weight. Nothing about the data changes below — only the question does. Pick a question to
+    see which tool it calls for, and why the other three fall short of it.
+  </p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <p class="q-label">QUESTION</p>
+  <p class="q-text" id="qText"></p>
+
+  <div class="panel"><div class="chart-wrap"><canvas id="chartCanvas"></canvas></div></div>
+
+  <div class="split">
+    <div class="box why"><p class="lab" id="whyLabel"></p><p class="txt" id="whyText"></p></div>
+    <div class="box what"><p class="lab">WHAT IT SHOWS</p><p class="txt" id="whatText"></p></div>
+  </div>
+  <div class="box not"><p class="lab">NOT THE OTHER THREE, BECAUSE</p><p class="txt" id="notText"></p></div>
+
+  <div class="recap">
+    <p class="recap-label">RECAP — MATCH THE QUESTION TO THE TOOL</p>
+    <table>
+      <thead><tr><th>If you're asking...</th><th>Reach for</th><th>Because</th></tr></thead>
+      <tbody>
+        <tr><td>Which category matters most?</td><td class="tool">Pareto Chart</td><td class="why">Ranks and cumulates categorical counts</td></tr>
+        <tr><td>Is the process stable over time?</td><td class="tool">Control Chart</td><td class="why">Separates normal variation from real shifts</td></tr>
+        <tr><td>What's the shape of a measurement?</td><td class="tool">Histogram</td><td class="why">Shows centering and spread of one variable</td></tr>
+        <tr><td>Are two variables related?</td><td class="tool">Scatter Diagram</td><td class="why">Tests correlation between two variables</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <details>
+    <summary>View the 20-day raw dataset used for all four charts</summary>
+    <div class="raw-wrap">
+      <table class="raw" id="rawTable"></table>
+    </div>
+  </details>
+
+  <footer>Companion piece to the "Pick the Right Quality Tool" practice exercise.</footer>
+</div>
+
+<script>
+/* Same dataset shape as the quiz page's datasetA. */
+const dataset = {
+  typeLabels: { shortFill:"Short fill", burr:"Burr", crack:"Crack", warp:"Warpage", disc:"Discoloration", flash:"Flash" },
+  unit:"g", target:50,
+  days: [
+    {day:1,temp:185,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:49.8},
+    {day:2,temp:186,shortFill:3,burr:2,crack:0,warp:1,disc:1,flash:0,weight:50.3},
+    {day:3,temp:185,shortFill:5,burr:3,crack:1,warp:0,disc:0,flash:1,weight:49.6},
+    {day:4,temp:187,shortFill:4,burr:2,crack:0,warp:1,disc:0,flash:0,weight:50.1},
+    {day:5,temp:186,shortFill:3,burr:4,crack:1,warp:0,disc:1,flash:0,weight:49.9},
+    {day:6,temp:185,shortFill:4,burr:3,crack:0,warp:1,disc:0,flash:0,weight:50.4},
+    {day:7,temp:186,shortFill:5,burr:2,crack:1,warp:0,disc:0,flash:1,weight:49.7},
+    {day:8,temp:187,shortFill:3,burr:3,crack:0,warp:1,disc:1,flash:0,weight:50.0},
+    {day:9,temp:186,shortFill:4,burr:4,crack:1,warp:0,disc:0,flash:0,weight:49.5},
+    {day:10,temp:185,shortFill:3,burr:2,crack:0,warp:1,disc:0,flash:1,weight:50.2},
+    {day:11,temp:186,shortFill:4,burr:3,crack:1,warp:1,disc:0,flash:0,weight:49.9},
+    {day:12,temp:187,shortFill:5,burr:3,crack:0,warp:0,disc:1,flash:0,weight:50.6},
+    {day:13,temp:186,shortFill:4,burr:2,crack:1,warp:1,disc:0,flash:0,weight:49.4},
+    {day:14,temp:185,shortFill:3,burr:3,crack:0,warp:0,disc:0,flash:1,weight:50.0},
+    {day:15,temp:186,shortFill:4,burr:4,crack:1,warp:1,disc:0,flash:0,weight:49.8},
+    {day:16,temp:188,shortFill:5,burr:3,crack:0,warp:1,disc:1,flash:0,weight:50.1},
+    {day:17,temp:192,shortFill:8,burr:4,crack:1,warp:3,disc:0,flash:1,weight:50.3},
+    {day:18,temp:194,shortFill:9,burr:3,crack:1,warp:4,disc:1,flash:0,weight:49.9},
+    {day:19,temp:195,shortFill:10,burr:4,crack:0,warp:4,disc:0,flash:1,weight:50.5},
+    {day:20,temp:196,shortFill:12,burr:5,crack:1,warp:5,disc:1,flash:0,weight:50.2}
+  ]
+};
+
+const TOOLS = [
+  { key:"pareto", name:"Pareto Chart", sub:"count by category",
+    question:"Which defect types are costing us the most, and where should the team focus first?",
+    why:"It ranks categories by frequency and overlays the cumulative percentage, so the \u201Cvital few\u201D separate visually from the \u201Ctrivial many.\u201D",
+    what:"Short fill and burr together account for about 77% of every defect logged across the 20 days \u2014 fixing those two mold issues resolves most of the problem.",
+    not:"A control chart would show when defects happened, not which type matters most. A histogram needs a continuous measurement, not defect categories \u2014 it can't rank them at all." },
+  { key:"control", name:"Control Chart", sub:"value over time",
+    question:"Is the molding process stable, or has something changed that needs investigating?",
+    why:"It plots the same total-defects-per-day figure against control limits calculated from the process itself, so ordinary day-to-day noise is separated from a genuine shift.",
+    what:"", // filled in dynamically with computed limits
+    not:"A Pareto chart tells you what fails most overall, not when it started failing. A scatter diagram could hint at a relationship but won't flag which specific day broke down." },
+  { key:"histogram", name:"Histogram", sub:"distribution of a measurement",
+    question:"Is the critical part dimension centered on target, and what's the process's natural spread?",
+    why:"It turns individual weight measurements into a distribution, revealing centering, spread, and shape at a glance \u2014 something a time-ordered chart can't show clearly.",
+    what:"Weights cluster tightly around the 50 g target with a slight right-hand tail. No sign of off-center or bimodal behavior on this characteristic.",
+    not:"A control chart shows drift over time but hides the overall shape of the spread. Pareto only works on categorical counts \u2014 it can't bin a continuous measurement." },
+  { key:"scatter", name:"Scatter Diagram", sub:"relationship between two variables",
+    question:"Is there a relationship between barrel temperature and the number of defects?",
+    why:"It plots two continuous variables against each other to test for \u2014 and visualize the strength of \u2014 a relationship, which a bar chart or histogram can't answer.",
+    what:"A clear positive relationship shows up above roughly 190\u00B0C: defects climb sharply. Temperature is a strong candidate for the root cause.",
+    not:"A histogram shows one variable's distribution, not how two move together. A control chart shows only time, not correlation between variables." }
+];
+
+function dailyTotals(ds){ return ds.days.map(d=>({...d,total:d.shortFill+d.burr+d.crack+d.warp+d.disc+d.flash})); }
+function paretoData(ds){
+  const keys = Object.keys(ds.typeLabels);
+  const totals = keys.map(k=>({label:ds.typeLabels[k], count: ds.days.reduce((s,d)=>s+d[k],0)}));
+  totals.sort((a,b)=>b.count-a.count);
+  const grand = totals.reduce((s,t)=>s+t.count,0);
+  let running=0;
+  return totals.map(t=>{ running+=t.count; return {...t, cumPct:+(running/grand*100).toFixed(1)}; });
+}
+function controlLimits(totals){
+  const baseline = totals.slice(0,16).map(d=>d.total);
+  const mean = baseline.reduce((a,b)=>a+b,0)/baseline.length;
+  const variance = baseline.reduce((a,b)=>a+(b-mean)**2,0)/baseline.length;
+  const std = Math.sqrt(variance);
+  return { mean, UCL: mean+3*std, LCL: Math.max(0, mean-3*std) };
+}
+function histogramBins(ds){
+  const weights = ds.days.map(d=>d.weight);
+  const min=Math.min(...weights), max=Math.max(...weights);
+  const n=6, width=(max-min)/n;
+  const bins=[];
+  for(let i=0;i<n;i++){
+    const lo=min+i*width, hi=i===n-1?max+0.001:min+(i+1)*width;
+    bins.push({range:`${lo.toFixed(1)}\u2013${Math.min(hi,max).toFixed(1)}`, lo, hi});
+  }
+  bins.forEach(b=> b.count = weights.filter(w=>w>=b.lo && w<b.hi).length);
+  return bins;
+}
+function scatterAndTrend(totals){
+  const pts = totals.map(d=>({x:d.temp,y:d.total}));
+  const n=pts.length;
+  const sumX=pts.reduce((a,p)=>a+p.x,0), sumY=pts.reduce((a,p)=>a+p.y,0);
+  const sumXY=pts.reduce((a,p)=>a+p.x*p.y,0), sumX2=pts.reduce((a,p)=>a+p.x*p.x,0);
+  const slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);
+  const intercept=(sumY-slope*sumX)/n;
+  const minX=Math.min(...pts.map(p=>p.x)), maxX=Math.max(...pts.map(p=>p.x));
+  return { pts, trend:[{x:minX,y:slope*minX+intercept},{x:maxX,y:slope*maxX+intercept}] };
+}
+
+const COLORS = { ink:"#16324F", blue:"#2B6CA3", teal:"#3F8C82", orange:"#D9531E", muted:"#5C7688" };
+let chartInstance = null;
+const commonFont = { family:"'IBM Plex Mono', monospace", size:11 };
+
+function renderChart(key){
+  const ctx = document.getElementById("chartCanvas").getContext("2d");
+  if (chartInstance) chartInstance.destroy();
+
+  if (key==="pareto"){
+    const data = paretoData(dataset);
+    chartInstance = new Chart(ctx, {
+      data:{ labels:data.map(d=>d.label), datasets:[
+        {type:"bar", label:"Defect count", data:data.map(d=>d.count), backgroundColor:COLORS.blue, yAxisID:"yCount", order:2},
+        {type:"line", label:"Cumulative %", data:data.map(d=>d.cumPct), borderColor:COLORS.orange, backgroundColor:COLORS.orange, yAxisID:"yPct", order:1, tension:.3, pointRadius:4}
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ ticks:{font:commonFont,color:COLORS.ink} },
+          yCount:{ position:"left", ticks:{font:commonFont,color:COLORS.ink}, title:{display:true,text:"Defect count",color:COLORS.muted} },
+          yPct:{ position:"right", min:0, max:100, grid:{drawOnChartArea:false}, ticks:{font:commonFont,color:COLORS.ink}, title:{display:true,text:"Cumulative %",color:COLORS.muted} }
+        },
+        plugins:{ legend:{ labels:{font:commonFont} } }
+      }
+    });
+  }
+
+  if (key==="control"){
+    const totals = dailyTotals(dataset);
+    const { mean, UCL, LCL } = controlLimits(totals);
+    chartInstance = new Chart(ctx, {
+      type:"line",
+      data:{ labels:totals.map(d=>d.day), datasets:[
+        { label:"Total defects", data:totals.map(d=>d.total), borderColor:COLORS.blue, backgroundColor:COLORS.blue, tension:.25, pointRadius:5,
+          pointBackgroundColor: totals.map(d => (d.total>UCL||d.total<LCL) ? COLORS.orange : COLORS.blue) },
+        { label:"CL", data:totals.map(()=>mean), borderColor:COLORS.teal, borderDash:[4,3], pointRadius:0, fill:false },
+        { label:"UCL", data:totals.map(()=>UCL), borderColor:COLORS.orange, borderDash:[4,3], pointRadius:0, fill:false },
+        { label:"LCL", data:totals.map(()=>LCL), borderColor:COLORS.orange, borderDash:[4,3], pointRadius:0, fill:false }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ title:{display:true,text:"Production day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
+          y:{ title:{display:true,text:"Total defects / day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} }
+        },
+        plugins:{ legend:{ labels:{font:commonFont} } }
+      }
+    });
+    TOOLS.find(t=>t.key==="control").what =
+      `Limits calculated from the first 16 days give a centerline near ${mean.toFixed(1)} and an upper limit near ${UCL.toFixed(1)}. Days 17\u201320 breach that limit \u2014 the process shifted out of control right as temperature crept up.`;
+  }
+
+  if (key==="histogram"){
+    const bins = histogramBins(dataset);
+    chartInstance = new Chart(ctx, {
+      type:"bar",
+      data:{ labels:bins.map(b=>b.range), datasets:[{ label:`Parts sampled (${dataset.unit})`, data:bins.map(b=>b.count), backgroundColor:COLORS.teal }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ title:{display:true,text:`Part weight (${dataset.unit})`,color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
+          y:{ beginAtZero:true, ticks:{stepSize:1,font:commonFont,color:COLORS.ink}, title:{display:true,text:"Number of parts",color:COLORS.muted} }
+        },
+        plugins:{ legend:{ labels:{font:commonFont} } }
+      }
+    });
+  }
+
+  if (key==="scatter"){
+    const totals = dailyTotals(dataset);
+    const { pts, trend } = scatterAndTrend(totals);
+    chartInstance = new Chart(ctx, {
+      type:"scatter",
+      data:{ datasets:[
+        { type:"scatter", label:"Production day", data:pts, backgroundColor:COLORS.blue },
+        { type:"line", label:"Trend", data:trend, borderColor:COLORS.orange, pointRadius:0, fill:false, tension:0 }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ type:"linear", title:{display:true,text:"Barrel temperature (\u00B0C)",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} },
+          y:{ title:{display:true,text:"Total defects / day",color:COLORS.muted}, ticks:{font:commonFont,color:COLORS.ink} }
+        },
+        plugins:{ legend:{ labels:{font:commonFont} } }
+      }
+    });
+  }
+}
+
+function buildTabs(){
+  const el = document.getElementById("tabs");
+  el.innerHTML = "";
+  TOOLS.forEach(tool=>{
+    const btn = document.createElement("button");
+    btn.className = "tab-btn" + (tool.key===active ? " active" : "");
+    btn.innerHTML = `${tool.name}<span class="sub">${tool.sub}</span>`;
+    btn.addEventListener("click", ()=>selectTab(tool.key));
+    el.appendChild(btn);
+  });
+}
+
+function buildRawTable(){
+  const t = document.getElementById("rawTable");
+  const totals = dailyTotals(dataset);
+  const head = ["Day","Temp \u00B0C","Short fill","Burr","Warp","Crack","Disc","Flash","Total","Weight g"];
+  let html = "<thead><tr>" + head.map(h=>`<th>${h}</th>`).join("") + "</tr></thead><tbody>";
+  totals.forEach(d=>{
+    html += `<tr><td>${d.day}</td><td>${d.temp}</td><td>${d.shortFill}</td><td>${d.burr}</td><td>${d.warp}</td><td>${d.crack}</td><td>${d.disc}</td><td>${d.flash}</td><td style="font-weight:600;">${d.total}</td><td>${d.weight.toFixed(1)}</td></tr>`;
+  });
+  html += "</tbody>";
+  t.innerHTML = html;
+}
+
+let active = "pareto";
+function selectTab(key){
+  active = key;
+  const tool = TOOLS.find(t=>t.key===key);
+  renderChart(key); // may update tool.what for control chart
+  document.getElementById("qText").textContent = tool.question;
+  document.getElementById("whyLabel").textContent = "WHY " + tool.name.toUpperCase();
+  document.getElementById("whyText").textContent = tool.why;
+  document.getElementById("whatText").textContent = tool.what;
+  document.getElementById("notText").textContent = tool.not;
+  buildTabs();
+}
+
+buildRawTable();
+selectTab("pareto");
+</script>
+</body>
+</html>
