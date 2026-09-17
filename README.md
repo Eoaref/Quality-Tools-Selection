@@ -55,9 +55,9 @@ A round of UX feedback (Sept 2026) led to these changes, in case you're extendin
 
 ## License
 
-This tool was created by [Enas Aref](mailto:earef@outlook.com) as an aid to help students recognize the role, value, and application of some common quality tools. This interactive example was planned and structured by the instructor; the code was created by Claude (Anthropic) and deployed by the instructor. It is for educational purposes only — names and entities are fictional, used solely to give context to the problems.
+This tool was created by [Enas Aref](mailto:earef@bgsu.edu) as an aid to help students recognize the role, value, and application of some common quality tools. This interactive example was planned and structured by the instructor; the code was created by Claude (Anthropic) and deployed by the instructor. It is for educational purposes only — names and entities are fictional, used solely to give context to the problems.
 
-Comments, questions, or spotted errors: earef@outlook.com
+Comments, questions, or spotted errors: earef@bgsu.edu
 
 Licensed under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) — share the original only, no modifications, no commercial use.
 
